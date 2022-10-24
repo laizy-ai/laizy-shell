@@ -1,0 +1,9 @@
+%load ../laizy/laizy-templates/webdev/app_builder.laizy
+%load ../laizy/laizy-templates/webdev/ansi_gen.laizy
+%load ../laizy/laizy-templates/webdev/frontend_gen.laizy
+
+
+1. load a file into laizy
+2. auto complete the prompt 
+3. enter a manual prompt
+4. load another file into laizy
