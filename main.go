@@ -65,19 +65,19 @@ func CallClear() {
 	}
 }
 func init() {
-	clear = make(map[string]func()) //Initialize it
+	clear = make(map[string]func())
 	clear["linux"] = func() {
-		cmd := exec.Command("clear") //Linux example, its tested
+		cmd := exec.Command("clear")
 		cmd.Stdout = os.Stdout
 		cmd.Run()
 	}
 	clear["darwin"] = func() {
-		cmd := exec.Command("clear") //Linux example, its tested
+		cmd := exec.Command("clear")
 		cmd.Stdout = os.Stdout
 		cmd.Run()
 	}
 	clear["windows"] = func() {
-		cmd := exec.Command("cmd", "/c", "cls") //Windows example, its tested
+		cmd := exec.Command("cmd", "/c", "cls")
 		cmd.Stdout = os.Stdout
 		cmd.Run()
 	}
@@ -89,10 +89,8 @@ func init() {
 	laizyConfigFolder := fmt.Sprintf("%s/.config/laizy", userHomeFolder)
 	_, err := os.Stat(laizyConfigFolder)
 	if os.IsNotExist(err) {
-		os.Mkdir(laizyConfigFolder, 0755)
+		os.Mkdir(laizyConfigFolder, 0700)
 	}
-
-	// read prompt history file
 	promptHistoryFile, err := os.ReadFile(promptHistoryFile)
 	if err != nil {
 		pterm.Error.Println(err)
@@ -105,7 +103,6 @@ func specialCommandHandler(userPrompt string) bool {
 	userPrompt = strings.Split(userPrompt, " ")[0]
 
 	if userPrompt == "%multi" {
-		// toggle multi line input
 		laizyInputMultiLine = !laizyInputMultiLine
 		if laizyInputMultiLine {
 			pterm.Info.Println("Multi line input enabled")
@@ -157,9 +154,7 @@ func specialCommandHandler(userPrompt string) bool {
 		return true
 	}
 	if userPrompt == "%exec" || userPrompt == "%!" {
-		// execute shell command
 		if len(strings.Split(unmodifiedPrompt, " ")) > 1 {
-			// trim trailing spaces
 			baseCommand := strings.Split(unmodifiedPrompt, " ")[1]
 			shellCommandWithArgs := strings.Split(unmodifiedPrompt, " ")[2:]
 			out, err := exec.Command(baseCommand, shellCommandWithArgs...).Output()
@@ -180,8 +175,6 @@ func specialCommandHandler(userPrompt string) bool {
 			laizyOutputFile, _ = pterm.DefaultInteractiveTextInput.Show("Enter a filename to save the last response to")
 		}
 		pterm.Info.Println("Saving prompt output to file", laizyOutputFile)
-		// f, err := os.Create(laizyOutputFile)
-		// file exists
 		f, err := os.OpenFile(laizyOutputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			pterm.Error.Println("Error creating file", err, laizyOutputFile)
@@ -193,12 +186,10 @@ func specialCommandHandler(userPrompt string) bool {
 		}
 		return true
 	}
-
 	if userPrompt == "%qotd" {
 		pterm.Info.Println(bannerQOTD)
 		return true
 	}
-
 	if regexp.MustCompile(`^%`).MatchString(userPrompt) {
 		return true
 	}
@@ -225,13 +216,9 @@ func main() {
 	pterm.DefaultCenter.Println(pterm.NewStyle(pterm.FgLightMagenta).Sprint("Generate a bash script to install a web server"))
 	pterm.DefaultCenter.Println(pterm.NewStyle(pterm.FgLightMagenta).Sprint("Generate a bash script to install a web server that uses a database"))
 
-	// main repl loop
 	for {
 		var laizySpinnerMessage = "thinking"
 		var laizyResponseJSON map[string]interface{}
-		// show user prompt
-		// text style for a blue background
-
 		inputPromptStyle := pterm.NewStyle(pterm.FgLightYellow, pterm.BgLightBlue)
 		var userPromptValue string
 		if laizyInputMultiLine {
@@ -269,19 +256,18 @@ func main() {
 			lastPrompt = userPromptValue
 			laizyFullResponse = ""
 			promptHistory = append(promptHistory, userPromptValue)
-			// write prompt history to file
 			f, err := os.Create(promptHistoryFile)
 			if err != nil {
 				pterm.Error.Println("Error creating file", promptHistoryFile)
 			}
 			_, err = io.WriteString(f, strings.Join(promptHistory, "\n"))
+			if err != nil {
+				pterm.Error.Println("Error updating prompt history file", promptHistoryFile)
+			}
 
 		}
-		// show the loading spinner
 		spinnerInfo, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Laizy is %s...", laizySpinnerMessage))
-		// send the request to laizy.dev
 		laizyResponse := sendLaizyRequest(promptValue, 1)
-		// retrieve the response from laizy.dev
 		err := json.Unmarshal([]byte(laizyResponse), &laizyResponseJSON)
 		if err != nil {
 			spinnerInfo.Fail("An error occured")
@@ -298,10 +284,8 @@ func main() {
 	}
 }
 
-// A JSON blob containing all us presidents and their party affiliation
 func sendLaizyRequest(userPrompt string, iterations int) string {
 	url := "https://app.laizy.dev/submit"
-
 	laizyRequestBody := gabs.New()
 	laizyRequestBody.Set(userPrompt, "prompt")
 	laizyRequestBody.Set(iterations, "iterations")
@@ -316,12 +300,11 @@ func sendLaizyRequest(userPrompt string, iterations int) string {
 	req.Header.Set("User-Agent", "laizy-cli")
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		pterm.Error.Println(err)
+		pterm.Error.Println("Error accessing laizy api", err)
 	}
-	// defer res.Body.Close()
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		pterm.Error.Println(err)
+		pterm.Error.Println("Error processing laizy response", err)
 	}
 	return (string(body))
 }

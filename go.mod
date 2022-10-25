@@ -1,8 +1,6 @@
-module laizy-term
+module github.com/laizy-ai/laizy-shell
 
 go 1.19
-
-//QED
 
 require (
 	github.com/Jeffail/gabs v1.4.0
