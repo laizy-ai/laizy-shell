@@ -23,7 +23,7 @@ An interactive shell environment with an enhanced AI assistant. All the power of
 Laizy is written in Go, so you'll need to have Go installed on your machine. You can download Go [here](https://golang.org/dl/). After that you can install laizy by running the following command:
 
 ```bash
-go get github.com/laizy-ai/laizy-shell
+go install github.com/laizy-ai/laizy-shell@latest
 ```
 
 Alternatively, you can download the latest release from the [releases page](https://github.com/laizy-ai/laizy-shell/releases).
