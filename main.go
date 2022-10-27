@@ -166,7 +166,7 @@ func specialCommandHandler(userPrompt string) bool {
 		pterm.Println("loaded data from file\n", lastPrompt)
 		return true
 	}
-	if userPrompt == userPrompt == "%lp" || "%load" {
+	if userPrompt == "%lp" || userPrompt == "%load" {
 		if len(strings.Split(unmodifiedPrompt, " ")) > 1 {
 			laizyInputFile = strings.Split(unmodifiedPrompt, " ")[1]
 			laizyInputFile = strings.TrimSpace(laizyInputFile)
