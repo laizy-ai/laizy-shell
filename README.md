@@ -55,6 +55,7 @@ exit - Exit the shell
 %save - Save prompt output to a file, e.g. %save output.txt
 %exec - Execute a shell command
 %history - Show prompt history
+%chain - Enables prompt+output chaining
 ```
 
 <img src="./laizy-shell.gif" alt="Laizy Shell" width="800"/>

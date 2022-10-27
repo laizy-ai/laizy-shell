@@ -25,6 +25,7 @@ var (
 	promptValue            = ""
 	lastPrompt             = ""
 	laizyInputMultiLine    = false
+	laizyInputChain   = false
 	laizyInputFile         string
 	laizyInputFileContents string
 	laizyFullResponse      = ""
@@ -50,6 +51,7 @@ var (
 		"Type %exec to execute a shell command",
 		"Type %history to show the command history",
 		"Type %multi to toggle multiline mode",
+		"Type %chain to toggle chaining (prompt-output-prompt) mode",
 	}
 	bannerQOTD = ""
 	clear      map[string]func() //create a map for storing clear funcs
@@ -108,6 +110,16 @@ func specialCommandHandler(userPrompt string) bool {
 			pterm.Info.Println("Multi line input enabled")
 		} else {
 			pterm.Info.Println("Single line input enabled")
+		}
+
+		return true
+	}
+	if userPrompt == "%chain" {
+		laizyInputChain = !laizyInputChain
+		if laizyInputChain {
+			pterm.Info.Println("Chained input enabled")
+		} else {
+			pterm.Info.Println("Chained input disabled")
 		}
 
 		return true
@@ -253,6 +265,7 @@ func main() {
 			}
 		} else {
 			promptValue = userPromptValue
+	
 			lastPrompt = userPromptValue
 			laizyFullResponse = ""
 			promptHistory = append(promptHistory, userPromptValue)
@@ -265,6 +278,9 @@ func main() {
 				pterm.Error.Println("Error updating prompt history file", promptHistoryFile)
 			}
 
+		}
+		if laizyInputChain {
+			promptValue = laizyLastResponse + "\n" + userPromptValue
 		}
 		spinnerInfo, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Laizy is %s...", laizySpinnerMessage))
 		laizyResponse := sendLaizyRequest(promptValue, 1)
