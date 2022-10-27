@@ -148,12 +148,12 @@ func specialCommandHandler(userPrompt string) bool {
 		}
 		return true
 	}
-	if userPrompt == "%lp" || userPrompt == "%loadprompt" {
+	if userPrompt == "%ld" || userPrompt == "%loaddata" {
 		if len(strings.Split(unmodifiedPrompt, " ")) > 1 {
 			laizyInputFile = strings.Split(unmodifiedPrompt, " ")[1]
 			laizyInputFile = strings.TrimSpace(laizyInputFile)
 		} else {
-			laizyInputFile, _ = pterm.DefaultInteractiveTextInput.Show("Enter a filename to load the prompt from")
+			laizyInputFile, _ = pterm.DefaultInteractiveTextInput.Show("Enter a filename to load the data from")
 		}
 
 		laizyInputFileContents, err := os.ReadFile(laizyInputFile)
@@ -163,10 +163,10 @@ func specialCommandHandler(userPrompt string) bool {
 		laizyLastResponse = string(laizyInputFileContents)
 		lastPrompt = laizyLastResponse
 		laizyFullResponse = ""
-		pterm.Println("loaded prompt from file\n", lastPrompt)
+		pterm.Println("loaded data from file\n", lastPrompt)
 		return true
 	}
-	if userPrompt == "%load" || userPrompt == "%ld" {
+	if userPrompt == userPrompt == "%lp" || "%load" {
 		if len(strings.Split(unmodifiedPrompt, " ")) > 1 {
 			laizyInputFile = strings.Split(unmodifiedPrompt, " ")[1]
 			laizyInputFile = strings.TrimSpace(laizyInputFile)
@@ -252,10 +252,17 @@ func main() {
 		var laizyResponseJSON map[string]interface{}
 		inputPromptStyle := pterm.NewStyle(pterm.FgLightYellow, pterm.BgLightBlue)
 		var userPromptValue string
-		if laizyInputMultiLine {
-			userPromptValue, _ = pterm.DefaultInteractiveTextInput.WithMultiLine().WithTextStyle(inputPromptStyle).Show("LAIZY>")
+		var chainIcon string
+		if laizyInputChain {
+			chainIcon = "⛓"
 		} else {
-			userPromptValue, _ = pterm.DefaultInteractiveTextInput.WithTextStyle(inputPromptStyle).Show("LAIZY>")
+			chainIcon = ""
+		}
+		laizyPrompt := fmt.Sprintf("%sLAIZY>",chainIcon)
+		if laizyInputMultiLine {
+			userPromptValue, _ = pterm.DefaultInteractiveTextInput.WithMultiLine().WithTextStyle(inputPromptStyle).Show(laizyPrompt)
+		} else {
+			userPromptValue, _ = pterm.DefaultInteractiveTextInput.WithTextStyle(inputPromptStyle).Show(laizyPrompt)
 		}
 		if specialCommandHandler(userPromptValue) {
 			continue
