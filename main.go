@@ -67,6 +67,7 @@ func CallClear() {
 	}
 }
 func init() {
+
 	clear = make(map[string]func())
 	clear["linux"] = func() {
 		cmd := exec.Command("clear")
@@ -145,6 +146,24 @@ func specialCommandHandler(userPrompt string) bool {
 		for index, prompt := range promptHistory {
 			pterm.Info.Println(index, prompt)
 		}
+		return true
+	}
+	if userPrompt == "%lp" || userPrompt == "%loadprompt" {
+		if len(strings.Split(unmodifiedPrompt, " ")) > 1 {
+			laizyInputFile = strings.Split(unmodifiedPrompt, " ")[1]
+			laizyInputFile = strings.TrimSpace(laizyInputFile)
+		} else {
+			laizyInputFile, _ = pterm.DefaultInteractiveTextInput.Show("Enter a filename to load the prompt from")
+		}
+
+		laizyInputFileContents, err := os.ReadFile(laizyInputFile)
+		if err != nil {
+			pterm.Error.Println("Error loading file", err)
+		}
+		laizyLastResponse = string(laizyInputFileContents)
+		lastPrompt = laizyLastResponse
+		laizyFullResponse = ""
+		pterm.Println("loaded prompt from file\n", lastPrompt)
 		return true
 	}
 	if userPrompt == "%load" || userPrompt == "%ld" {
@@ -280,7 +299,8 @@ func main() {
 
 		}
 		if laizyInputChain {
-			promptValue = laizyLastResponse + "\n" + userPromptValue
+			previousPrompt := promptHistory[len(promptHistory) -1 ]
+			promptValue = previousPrompt +"\n" + laizyLastResponse + "\n" + userPromptValue
 		}
 		spinnerInfo, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Laizy is %s...", laizySpinnerMessage))
 		laizyResponse := sendLaizyRequest(promptValue, 1)
