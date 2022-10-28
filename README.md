@@ -52,10 +52,12 @@ exit - Exit the shell
 
 %multi - Toggle multi-line mode
 %load - Load a prompt from file, e.g. %load prompt.txt
+%ld/%loaddata - Load data from file, e.g. %ld data.txt 
 %save - Save prompt output to a file, e.g. %save output.txt
-%exec - Execute a shell command
+%exec/%execs - Execute a shell command (save output as data with %execs)
 %history - Show prompt history
 %chain - Enables prompt+output chaining
+%fetch - Fetches http response and saves it as data
 ```
 
 <img src="./laizy-shell.gif" alt="Laizy Shell" width="800"/>

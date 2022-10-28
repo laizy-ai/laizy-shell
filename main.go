@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"os"
@@ -25,7 +26,7 @@ var (
 	promptValue            = ""
 	lastPrompt             = ""
 	laizyInputMultiLine    = false
-	laizyInputChain   = false
+	laizyInputChain        = false
 	laizyInputFile         string
 	laizyInputFileContents string
 	laizyFullResponse      = ""
@@ -184,7 +185,7 @@ func specialCommandHandler(userPrompt string) bool {
 		pterm.Println("loaded prompt from file\n", promptValue)
 		return true
 	}
-	if userPrompt == "%exec" || userPrompt == "%!" {
+	if userPrompt == "%exec" || userPrompt == "%execs" || userPrompt == "%!" {
 		if len(strings.Split(unmodifiedPrompt, " ")) > 1 {
 			baseCommand := strings.Split(unmodifiedPrompt, " ")[1]
 			shellCommandWithArgs := strings.Split(unmodifiedPrompt, " ")[2:]
@@ -193,11 +194,42 @@ func specialCommandHandler(userPrompt string) bool {
 				pterm.Error.Println(err)
 			}
 			pterm.Println(string(out))
+			if userPrompt == "%execs" {
+				laizyLastResponse = string(out)
+			}
 		} else {
 			pterm.Error.Println("No shell command provided")
 		}
+
 		return true
 	}
+
+	if userPrompt == "%fetch" || userPrompt == "%curl" {
+		if len(strings.Split(unmodifiedPrompt, " ")) > 1 {
+			url := strings.Split(unmodifiedPrompt, " ")[1]
+			// check for http/s
+			if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+				url = fmt.Sprintf("http://%s", url)
+			}
+			resp, err := http.DefaultClient.Get(url)
+			if err != nil {
+				pterm.Error.Println(err)
+			}
+			defer resp.Body.Close()
+			body, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				pterm.Error.Println(err)
+			}
+			pterm.Println(string(body))
+			laizyLastResponse = string(body)
+
+		} else {
+			pterm.Error.Println("No URL provided")
+		}
+
+		return true
+	}
+
 	if userPrompt == "%save" || userPrompt == "%s" {
 		var laizyOutputFile string
 		if len(strings.Split(unmodifiedPrompt, " ")) > 1 {
@@ -258,7 +290,7 @@ func main() {
 		} else {
 			chainIcon = ""
 		}
-		laizyPrompt := fmt.Sprintf("%sLAIZY>",chainIcon)
+		laizyPrompt := fmt.Sprintf("%sLAIZY>", chainIcon)
 		if laizyInputMultiLine {
 			userPromptValue, _ = pterm.DefaultInteractiveTextInput.WithMultiLine().WithTextStyle(inputPromptStyle).Show(laizyPrompt)
 		} else {
@@ -291,7 +323,7 @@ func main() {
 			}
 		} else {
 			promptValue = userPromptValue
-	
+
 			lastPrompt = userPromptValue
 			laizyFullResponse = ""
 			promptHistory = append(promptHistory, userPromptValue)
@@ -306,8 +338,8 @@ func main() {
 
 		}
 		if laizyInputChain {
-			previousPrompt := promptHistory[len(promptHistory) -1 ]
-			promptValue = previousPrompt +"\n" + laizyLastResponse + "\n" + userPromptValue
+			previousPrompt := promptHistory[len(promptHistory)-1]
+			promptValue = previousPrompt + "\n" + laizyLastResponse + "\n" + userPromptValue
 		}
 		spinnerInfo, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Laizy is %s...", laizySpinnerMessage))
 		laizyResponse := sendLaizyRequest(promptValue, 1)
