@@ -214,11 +214,13 @@ func specialCommandHandler(userPrompt string) bool {
 			resp, err := http.DefaultClient.Get(url)
 			if err != nil {
 				pterm.Error.Println(err)
+				return true
 			}
 			defer resp.Body.Close()
 			body, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
 				pterm.Error.Println(err)
+				return true
 			}
 			pterm.Println(string(body))
 			laizyLastResponse = string(body)
