@@ -53,6 +53,7 @@ var (
 		"Type %history to show the command history",
 		"Type %multi to toggle multiline mode",
 		"Type %chain to toggle chaining (prompt-output-prompt) mode",
+		"Type %fetch to fetch data from a url",
 	}
 	bannerQOTD = ""
 	clear      map[string]func() //create a map for storing clear funcs
