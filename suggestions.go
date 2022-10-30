@@ -2,6 +2,7 @@ package main
 
 var promptSuggestions = []string{
 	"LAIZY>: %ld <path to iam role>\n💾LAIZY>: generate terraform code for the role above",
+	"LAIZY>: %ld <path to code snippet>\n💾LAIZY>: Refactor the code snippet above to <...>",
 	"LAIZY>: Generate a bash script to install a web server",
 	"💾LAIZY>: Convert to <snake_case|camelCase|PascalCase|kebab-case|dot.case|UPPERCASE|lowercase>",
 	"⛓LAIZY>: Convert the data above to <JSON|YAML|TOML|XML...>",
@@ -20,4 +21,5 @@ var promptSuggestions = []string{
 	"💡 When in doubt, use the %help command",
 	"💡 Use %fetch to get data from the internet",
 	"💡 For basic information lookup, laizy can replacesgoogle search",
+	"💡 Use %chain mode after %fetch, %ld, or %execs to process the data",
 }

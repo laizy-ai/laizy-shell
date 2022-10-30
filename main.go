@@ -115,6 +115,7 @@ func specialCommandHandler(userPrompt string) bool {
 		laizyFullResponse = ""
 		lastPrompt = ""
 		pterm.Success.Println("Laizy short-term memory cleared")
+		return true
 	case "%multi":
 		laizyInputMultiLine = !laizyInputMultiLine
 		if laizyInputMultiLine {
@@ -232,8 +233,9 @@ func specialCommandHandler(userPrompt string) bool {
 			pterm.Error.Println("Error writing to file", laizyOutputFile)
 		}
 		return true
-	case "%qotd":
-		pterm.Info.Println(bannerQOTD)
+	case "%tip", "%tips":
+		exampleText := promptSuggestions[rand.Intn(len(promptSuggestions))]
+		pterm.Info.Println(exampleText)
 		return true
 
 	}
