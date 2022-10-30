@@ -27,10 +27,11 @@ var (
 	promptHistory          = []string{}
 	promptValue            string
 	lastPrompt             string
+	statusIcon             string
 	laizyInputMultiLine    = false
 	laizyInputChain        = false
 	laizyInputFile         = ""
-	laizyInputFileContents = ""
+	laizyInputFileContents = []byte{}
 	laizyFullResponse      = ""
 	laizyLastResponse      = ""
 	laizyQOTDMessages      = []string{
@@ -103,9 +104,17 @@ func init() {
 }
 
 func specialCommandHandler(userPrompt string) bool {
+	var err error
 	unmodifiedPrompt := userPrompt
 	userPrompt = strings.Split(userPrompt, " ")[0]
 	promptHistory = append(promptHistory, userPrompt)
+	if userPrompt == "%forget" {
+		// clear laizy short term memory
+		laizyLastResponse = ""
+		laizyFullResponse = ""
+		lastPrompt = ""
+		pterm.Success.Println("Laizy short-term memory cleared")
+	}
 	if userPrompt == "%multi" {
 		laizyInputMultiLine = !laizyInputMultiLine
 		if laizyInputMultiLine {
@@ -156,8 +165,7 @@ func specialCommandHandler(userPrompt string) bool {
 		} else {
 			laizyInputFile, _ = pterm.DefaultInteractiveTextInput.Show("Enter a filename to load the data from")
 		}
-
-		laizyInputFileContents, err := os.ReadFile(laizyInputFile)
+		laizyInputFileContents, err = os.ReadFile(laizyInputFile)
 		if err != nil {
 			pterm.Error.Println("Error loading file", err)
 			return true
@@ -282,7 +290,6 @@ func main() {
 		var laizyResponseJSON map[string]interface{}
 		inputPromptStyle := pterm.NewStyle(pterm.FgLightYellow, pterm.BgLightBlue)
 		var userPromptValue string
-		var statusIcon string
 		if laizyInputChain {
 			statusIcon = "⛓"
 		} else {
@@ -314,10 +321,10 @@ func main() {
 
 			} else {
 				// for loading data from a file
-				if laizyInputFileContents != "" {
+				if laizyInputFileContents != nil {
 					pterm.Info.Println("Loading data from file", laizyInputFile)
 					promptValue = userPromptValue
-					laizyInputFileContents = ""
+					laizyInputFileContents = nil
 					laizyInputFile = ""
 				} else {
 					laizyFullResponse = ""
