@@ -108,14 +108,14 @@ func specialCommandHandler(userPrompt string) bool {
 	unmodifiedPrompt := userPrompt
 	userPrompt = strings.Split(userPrompt, " ")[0]
 	promptHistory = append(promptHistory, userPrompt)
-	if userPrompt == "%forget" {
+	switch userPrompt {
+	case "%forget":
 		// clear laizy short term memory
 		laizyLastResponse = ""
 		laizyFullResponse = ""
 		lastPrompt = ""
 		pterm.Success.Println("Laizy short-term memory cleared")
-	}
-	if userPrompt == "%multi" {
+	case "%multi":
 		laizyInputMultiLine = !laizyInputMultiLine
 		if laizyInputMultiLine {
 			pterm.Info.Println("Multi line input enabled")
@@ -124,41 +124,36 @@ func specialCommandHandler(userPrompt string) bool {
 		}
 
 		return true
-	}
-	if userPrompt == "%chain" {
+	case "%chain":
 		laizyInputChain = !laizyInputChain
 		if laizyInputChain {
-			pterm.Info.Println("Chained input enabled")
+			pterm.Info.Println("Chain input enabled")
 		} else {
-			pterm.Info.Println("Chained input disabled")
+			pterm.Info.Println("Chain input disabled")
 		}
 
 		return true
-	}
-	if userPrompt == "%clear" {
+
+	case "%clear":
 		CallClear()
 		return true
-	}
-	if userPrompt == "%exit" || userPrompt == "%quit" || userPrompt == "exit" || userPrompt == "quit" {
+	case "%exit", "%quit", "exit", "quit":
 		os.Exit(0)
 		return true
-	}
-	if userPrompt == "%help" || userPrompt == "help" {
+	case "%help", "help":
 
 		for _, entry := range helpMenuEntries {
 			pterm.Info.Println(entry)
 		}
 
 		return true
-	}
-	if userPrompt == "%history" {
+	case "%history":
 		pterm.Info.Println("Laizy CLI Prompt History")
 		for index, prompt := range promptHistory {
 			pterm.Info.Println(index, prompt)
 		}
 		return true
-	}
-	if userPrompt == "%ld" || userPrompt == "%load" {
+	case "%ld", "%load":
 		if len(strings.Split(unmodifiedPrompt, " ")) > 1 {
 			laizyInputFile = strings.Split(unmodifiedPrompt, " ")[1]
 			laizyInputFile = strings.TrimSpace(laizyInputFile)
@@ -176,9 +171,7 @@ func specialCommandHandler(userPrompt string) bool {
 		laizyFullResponse = ""
 		pterm.Println("loaded data from file\n", lastPrompt)
 		return true
-	}
-
-	if userPrompt == "%exec" || userPrompt == "%execs" || userPrompt == "%!" {
+	case "%exec", "%execs", "%!":
 		if len(strings.Split(unmodifiedPrompt, " ")) > 1 {
 			baseCommand := strings.Split(unmodifiedPrompt, " ")[1]
 			shellCommandWithArgs := strings.Split(unmodifiedPrompt, " ")[2:]
@@ -195,9 +188,7 @@ func specialCommandHandler(userPrompt string) bool {
 		}
 
 		return true
-	}
-
-	if userPrompt == "%fetch" || userPrompt == "%curl" {
+	case "%fetch", "%curl":
 		if len(strings.Split(unmodifiedPrompt, " ")) > 1 {
 			url := strings.Split(unmodifiedPrompt, " ")[1]
 			// check for http/s
@@ -223,9 +214,7 @@ func specialCommandHandler(userPrompt string) bool {
 		}
 
 		return true
-	}
-
-	if userPrompt == "%save" || userPrompt == "%s" {
+	case "%save", "%s":
 		var laizyOutputFile string
 		if len(strings.Split(unmodifiedPrompt, " ")) > 1 {
 			laizyOutputFile = strings.Split(unmodifiedPrompt, " ")[1]
@@ -243,12 +232,13 @@ func specialCommandHandler(userPrompt string) bool {
 			pterm.Error.Println("Error writing to file", laizyOutputFile)
 		}
 		return true
-	}
-	if userPrompt == "%qotd" {
+	case "%qotd":
 		pterm.Info.Println(bannerQOTD)
 		return true
+
 	}
 	if regexp.MustCompile(`^%`).MatchString(userPrompt) {
+		pterm.Error.Println("Unknown command", userPrompt)
 		return true
 	}
 	return false
@@ -299,6 +289,8 @@ func main() {
 			if len(laizyInputFileContents) > 0 {
 				statusIcon = "💾"
 			}
+			laizyInputFileContents = nil
+			laizyInputFile = ""
 			// fmt.Println(len(laizyInputFileContents))
 		}
 		laizyPrompt := fmt.Sprintf("%sLAIZY>", statusIcon)
@@ -319,18 +311,8 @@ func main() {
 				laizySpinnerMessage = "continuing from last response"
 				// clear screen
 
-			} else {
-				// for loading data from a file
-				if laizyInputFileContents != nil {
-					pterm.Info.Println("Loading data from file", laizyInputFile)
-					promptValue = userPromptValue
-					laizyInputFileContents = nil
-					laizyInputFile = ""
-				} else {
-					laizyFullResponse = ""
-
-				}
 			}
+
 		} else {
 			promptValue = userPromptValue
 
