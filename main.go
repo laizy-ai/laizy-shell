@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"os"
@@ -16,19 +15,22 @@ import (
 
 	"github.com/Jeffail/gabs"
 	"github.com/pterm/pterm"
+	"golang.org/x/exp/slices"
 )
 
 var (
+	promptHistoryFile      = fmt.Sprintf("%s/.config/laizy/.prompt_history", userHomeFolder)
+	bannerQOTD             string
+	clear                  map[string]func() //create a map for storing clear funcs
+	userHomeFolder         = os.Getenv("HOME")
 	laizyAPIKey            = os.Getenv("LAIZY_API_KEY")
 	promptHistory          = []string{}
-	userHomeFolder         = os.Getenv("HOME")
-	promptHistoryFile      = fmt.Sprintf("%s/.config/laizy/.prompt_history", userHomeFolder)
-	promptValue            = ""
-	lastPrompt             = ""
+	promptValue            string
+	lastPrompt             string
 	laizyInputMultiLine    = false
 	laizyInputChain        = false
-	laizyInputFile         string
-	laizyInputFileContents string
+	laizyInputFile         = ""
+	laizyInputFileContents = ""
 	laizyFullResponse      = ""
 	laizyLastResponse      = ""
 	laizyQOTDMessages      = []string{
@@ -47,17 +49,14 @@ var (
 		"Type exit or quit to exit",
 		"Type clear to clear the screen",
 		"Type help to show this menu",
-		"Type %load to load prompt from a file",
+		"Type %load (%ld) to load data from a file",
 		"Type %save to save the current output to a file",
-		"Type %exec to execute a shell command",
+		"Type %exec (%execs) to execute a shell command, add s to save as data",
 		"Type %history to show the command history",
 		"Type %multi to toggle multiline mode",
 		"Type %chain to toggle chaining (prompt-output-prompt) mode",
 		"Type %fetch to fetch data from a url",
 	}
-	bannerQOTD = ""
-	clear      map[string]func() //create a map for storing clear funcs
-
 )
 
 func CallClear() {
@@ -106,7 +105,7 @@ func init() {
 func specialCommandHandler(userPrompt string) bool {
 	unmodifiedPrompt := userPrompt
 	userPrompt = strings.Split(userPrompt, " ")[0]
-
+	promptHistory = append(promptHistory, userPrompt)
 	if userPrompt == "%multi" {
 		laizyInputMultiLine = !laizyInputMultiLine
 		if laizyInputMultiLine {
@@ -150,7 +149,7 @@ func specialCommandHandler(userPrompt string) bool {
 		}
 		return true
 	}
-	if userPrompt == "%ld" || userPrompt == "%loaddata" {
+	if userPrompt == "%ld" || userPrompt == "%load" {
 		if len(strings.Split(unmodifiedPrompt, " ")) > 1 {
 			laizyInputFile = strings.Split(unmodifiedPrompt, " ")[1]
 			laizyInputFile = strings.TrimSpace(laizyInputFile)
@@ -161,31 +160,16 @@ func specialCommandHandler(userPrompt string) bool {
 		laizyInputFileContents, err := os.ReadFile(laizyInputFile)
 		if err != nil {
 			pterm.Error.Println("Error loading file", err)
+			return true
 		}
+
 		laizyLastResponse = string(laizyInputFileContents)
 		lastPrompt = laizyLastResponse
 		laizyFullResponse = ""
 		pterm.Println("loaded data from file\n", lastPrompt)
 		return true
 	}
-	if userPrompt == "%lp" || userPrompt == "%load" {
-		if len(strings.Split(unmodifiedPrompt, " ")) > 1 {
-			laizyInputFile = strings.Split(unmodifiedPrompt, " ")[1]
-			laizyInputFile = strings.TrimSpace(laizyInputFile)
-		} else {
-			laizyInputFile, _ = pterm.DefaultInteractiveTextInput.Show("Enter a filename to load the prompt from")
-		}
 
-		laizyInputFileContents, err := os.ReadFile(laizyInputFile)
-		if err != nil {
-			pterm.Error.Println("Error loading file", err)
-		}
-		promptValue = string(laizyInputFileContents)
-		lastPrompt = promptValue
-		laizyFullResponse = ""
-		pterm.Println("loaded prompt from file\n", promptValue)
-		return true
-	}
 	if userPrompt == "%exec" || userPrompt == "%execs" || userPrompt == "%!" {
 		if len(strings.Split(unmodifiedPrompt, " ")) > 1 {
 			baseCommand := strings.Split(unmodifiedPrompt, " ")[1]
@@ -218,7 +202,7 @@ func specialCommandHandler(userPrompt string) bool {
 				return true
 			}
 			defer resp.Body.Close()
-			body, err := ioutil.ReadAll(resp.Body)
+			body, err := io.ReadAll(resp.Body)
 			if err != nil {
 				pterm.Error.Println(err)
 				return true
@@ -277,23 +261,40 @@ func main() {
 	// show laiz.dev logo
 	pterm.DefaultCenter.Println(laizyLogo)
 	// print sample prompts for users
-	pterm.DefaultCenter.Println(pterm.NewStyle(pterm.FgLightMagenta).Sprint("Try some of these prompts:"))
-	pterm.DefaultCenter.Println(pterm.NewStyle(pterm.FgLightMagenta).Sprint("Generate some golang code for a web server"))
-	pterm.DefaultCenter.Println(pterm.NewStyle(pterm.FgLightMagenta).Sprint("Generate a bash script to install a web server"))
-	pterm.DefaultCenter.Println(pterm.NewStyle(pterm.FgLightMagenta).Sprint("Generate a bash script to install a web server that uses a database"))
+	pterm.DefaultCenter.Println(pterm.NewStyle(pterm.FgLightMagenta).Sprint("Tips & Tricks:"))
+	// choose 3 random prompts from the list
+	rand.Seed(time.Now().UnixNano())
+	var randomSuggestions []string
+
+	for i := 0; i < 3; i++ {
+		// prevent duplicate examples
+		exampleText := promptSuggestions[rand.Intn(len(promptSuggestions))]
+		if slices.Contains(randomSuggestions, exampleText) {
+			i--
+			continue
+		}
+
+		pterm.DefaultCenter.Println(pterm.NewStyle(pterm.FgLightMagenta).Sprint(exampleText))
+	}
 
 	for {
 		var laizySpinnerMessage = "thinking"
 		var laizyResponseJSON map[string]interface{}
 		inputPromptStyle := pterm.NewStyle(pterm.FgLightYellow, pterm.BgLightBlue)
 		var userPromptValue string
-		var chainIcon string
+		var statusIcon string
 		if laizyInputChain {
-			chainIcon = "⛓"
+			statusIcon = "⛓"
 		} else {
-			chainIcon = ""
+			statusIcon = ""
 		}
-		laizyPrompt := fmt.Sprintf("%sLAIZY>", chainIcon)
+		if laizyInputFile != "" {
+			if len(laizyInputFileContents) > 0 {
+				statusIcon = "💾"
+			}
+			// fmt.Println(len(laizyInputFileContents))
+		}
+		laizyPrompt := fmt.Sprintf("%sLAIZY>", statusIcon)
 		if laizyInputMultiLine {
 			userPromptValue, _ = pterm.DefaultInteractiveTextInput.WithMultiLine().WithTextStyle(inputPromptStyle).Show(laizyPrompt)
 		} else {
@@ -315,7 +316,6 @@ func main() {
 				// for loading data from a file
 				if laizyInputFileContents != "" {
 					pterm.Info.Println("Loading data from file", laizyInputFile)
-
 					promptValue = userPromptValue
 					laizyInputFileContents = ""
 					laizyInputFile = ""
