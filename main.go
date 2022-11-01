@@ -274,7 +274,7 @@ func specialCommandHandler(userPrompt string) bool {
 			laizyOutputFile, _ = pterm.DefaultInteractiveTextInput.Show("Enter a filename to save the last response to")
 		}
 		pterm.Info.Println("Saving prompt output to file", laizyOutputFile)
-		f, err := os.OpenFile(laizyOutputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		f, err := os.OpenFile(laizyOutputFile, os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			pterm.Error.Println("Error creating file", err, laizyOutputFile)
 		}
