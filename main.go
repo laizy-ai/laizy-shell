@@ -46,7 +46,6 @@ var (
 		"You are a champion!",
 	}
 	helpMenuEntries = []string{
-		"Laizy CLI",
 		"Type exit or quit to exit",
 		"Type clear to clear the screen",
 		"Type help to show this menu",
@@ -54,6 +53,8 @@ var (
 		"Type %save to save the current output to a file",
 		"Type %exec (%execs) to execute a shell command, add s to save as data",
 		"Type %history to show the command history",
+		"Type %inspect to view laizy's short-term memory",
+		"Type %forget to clear laizy's short-term memory",
 		"Type %hl <#> to load a command from the history",
 		"Type %multi to toggle multiline mode",
 		"Type %chain to toggle chaining (prompt-output-prompt) mode",
