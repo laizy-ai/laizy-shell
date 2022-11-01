@@ -60,6 +60,7 @@ var (
 		"Type %chain to toggle chaining (prompt-output-prompt) mode",
 		"Type %fetch to fetch data from a url",
 		"Type %tips to show a random tip",
+		"Type %cd to change the current working directory",
 	}
 )
 
@@ -112,6 +113,17 @@ func specialCommandHandler(userPrompt string) bool {
 	userPrompt = strings.Split(userPrompt, " ")[0]
 	promptHistory = append(promptHistory, unmodifiedPrompt)
 	switch userPrompt {
+	case "%cd":
+		// change directory
+		if len(strings.Split(unmodifiedPrompt, " ")) > 1 {
+			err = os.Chdir(strings.Split(unmodifiedPrompt, " ")[1])
+			if err != nil {
+				pterm.Error.Println(err)
+			}
+		} else {
+			pterm.Error.Println("Please specify a directory")
+		}
+		return true
 	case "%inspect":
 		pterm.Info.Println("Inspecting laizy's short term memory")
 		pterm.Info.Println("Last Response:", laizyLastResponse)
