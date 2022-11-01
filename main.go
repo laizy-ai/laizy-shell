@@ -111,6 +111,16 @@ func specialCommandHandler(userPrompt string) bool {
 	userPrompt = strings.Split(userPrompt, " ")[0]
 	promptHistory = append(promptHistory, unmodifiedPrompt)
 	switch userPrompt {
+	case "%inspect":
+		pterm.Info.Println("Inspecting laizy's short term memory")
+		pterm.Info.Println("Last Response:", laizyLastResponse)
+		pterm.Info.Println("Full Response:", laizyFullResponse)
+		pterm.Info.Println("Last Prompt:", lastPrompt)
+		pterm.Info.Println("Prompt Value:", promptValue)
+		pterm.Info.Println("Input MultiLine:", laizyInputMultiLine)
+		pterm.Info.Println("Input Chain:", laizyInputChain)
+
+		return true
 	case "%forget":
 		// clear laizy short term memory
 		laizyLastResponse = ""
@@ -157,8 +167,13 @@ func specialCommandHandler(userPrompt string) bool {
 		}
 		return true
 	case "%hl":
-		// load from history
-		// second argument has line number
+		// load from history - clear the existing prompt and load the selected prompt
+		laizyLastResponse = ""
+		laizyFullResponse = ""
+		lastPrompt = ""
+		promptValue = ""
+		// disable chain mode
+		laizyInputChain = false
 		var historyItem int
 		if len(strings.Split(unmodifiedPrompt, " ")) == 1 {
 			// use last prompt
