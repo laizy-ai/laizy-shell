@@ -61,6 +61,7 @@ var (
 		"Type %fetch to fetch data from a url",
 		"Type %tips to show a random tip",
 		"Type %cd to change the current working directory",
+		"Type %pwd to show the current working directory",
 	}
 )
 
@@ -113,6 +114,10 @@ func specialCommandHandler(userPrompt string) bool {
 	userPrompt = strings.Split(userPrompt, " ")[0]
 	promptHistory = append(promptHistory, unmodifiedPrompt)
 	switch userPrompt {
+	case "%pwd":
+		pterm.Info.Println(os.Getwd())
+		return true
+
 	case "%cd":
 		// change directory
 		if len(strings.Split(unmodifiedPrompt, " ")) > 1 {
