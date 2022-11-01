@@ -10,6 +10,8 @@ var promptSuggestions = []string{
 	"LAIZY>: Generate terraform code for <insert AWS service here>",
 	"LAIZY>: Generate terraform code for <insert GCP service here>",
 	"LAIZY>: Generate terraform code for <insert Azure service here>",
+	"LAIZY>: Generate a skeleton for a golang application including package main, import and func main: ",
+	"LAIZY>: Generate a skeleton for a javascript application using the ECMAScript 2020 standard: ",
 
 	"💡 Use %chain mode to allow Laizy to treat the last response as data",
 	"💡 Use the %save command to save the last response to a file",
@@ -22,4 +24,7 @@ var promptSuggestions = []string{
 	"💡 Use %fetch to get data from the internet",
 	"💡 For basic information lookup, laizy can replacesgoogle search",
 	"💡 Use %chain mode after %fetch, %ld, or %execs to process the data",
+	"💡 Combine %fetch and %chain to get data from the internet and process it",
+	"💡 Combine %execs and %chain to get data from the shell and process it",
+	"💡 if Laizy starts going of the rails use the %forget command to clear short term memory",
 }
