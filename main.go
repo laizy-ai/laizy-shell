@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -54,6 +54,7 @@ var (
 		"Type %save to save the current output to a file",
 		"Type %exec (%execs) to execute a shell command, add s to save as data",
 		"Type %history to show the command history",
+		"Type %hl <#> to load a command from the history",
 		"Type %multi to toggle multiline mode",
 		"Type %chain to toggle chaining (prompt-output-prompt) mode",
 		"Type %fetch to fetch data from a url",
@@ -154,6 +155,28 @@ func specialCommandHandler(userPrompt string) bool {
 			pterm.Info.Println(index, prompt)
 		}
 		return true
+	case "%hl":
+		// load from history
+		// second argument has line number
+		lineNumber, err := strconv.Atoi(strings.Split(unmodifiedPrompt, " ")[1])
+		// ignore commands with % prefix
+		isCommand := strings.HasPrefix(promptHistory[lineNumber], "%")
+		if isCommand {
+			pterm.Error.Println("Cannot load command from history")
+			return true
+		}
+
+		if err != nil {
+			pterm.Error.Println(err)
+			return true
+		}
+		promptValue = promptHistory[lineNumber]
+		// print loaded prompt
+		pterm.Info.Println("Loaded prompt from history: ", promptValue)
+		// press enter to
+		pterm.Info.Println("Press enter to generate output from this prompt")
+		return true
+
 	case "%ld", "%load":
 		if len(strings.Split(unmodifiedPrompt, " ")) > 1 {
 			laizyInputFile = strings.Split(unmodifiedPrompt, " ")[1]
@@ -239,7 +262,8 @@ func specialCommandHandler(userPrompt string) bool {
 		return true
 
 	}
-	if regexp.MustCompile(`^%`).MatchString(userPrompt) {
+
+	if strings.HasPrefix(userPrompt, "%") {
 		pterm.Error.Println("Unknown command", userPrompt)
 		return true
 	}
@@ -301,6 +325,11 @@ func main() {
 		} else {
 			userPromptValue, _ = pterm.DefaultInteractiveTextInput.WithTextStyle(inputPromptStyle).Show(laizyPrompt)
 		}
+		if strings.Split(userPromptValue, " ")[0] == "" {
+			// drop the empty index
+			userPromptValue = strings.Join(strings.Split(userPromptValue, " ")[1:], " ")
+		}
+
 		if specialCommandHandler(userPromptValue) {
 			continue
 		}
