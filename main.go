@@ -58,6 +58,7 @@ var (
 		"Type %multi to toggle multiline mode",
 		"Type %chain to toggle chaining (prompt-output-prompt) mode",
 		"Type %fetch to fetch data from a url",
+		"Type %tips to show a random tip",
 	}
 )
 
@@ -108,7 +109,7 @@ func specialCommandHandler(userPrompt string) bool {
 	var err error
 	unmodifiedPrompt := userPrompt
 	userPrompt = strings.Split(userPrompt, " ")[0]
-	promptHistory = append(promptHistory, userPrompt)
+	promptHistory = append(promptHistory, unmodifiedPrompt)
 	switch userPrompt {
 	case "%forget":
 		// clear laizy short term memory
@@ -158,9 +159,21 @@ func specialCommandHandler(userPrompt string) bool {
 	case "%hl":
 		// load from history
 		// second argument has line number
-		lineNumber, err := strconv.Atoi(strings.Split(unmodifiedPrompt, " ")[1])
+		var historyItem int
+		if len(strings.Split(unmodifiedPrompt, " ")) == 1 {
+			// use last prompt
+			historyItem = len(promptHistory) - 2
+			// history item
+		} else {
+			historyItem, err = strconv.Atoi(strings.Split(unmodifiedPrompt, " ")[1])
+		}
+		if historyItem > len(promptHistory) {
+			pterm.Error.Println("Line number out of range")
+			return true
+		}
+
 		// ignore commands with % prefix
-		isCommand := strings.HasPrefix(promptHistory[lineNumber], "%")
+		isCommand := strings.HasPrefix(promptHistory[historyItem], "%")
 		if isCommand {
 			pterm.Error.Println("Cannot load command from history")
 			return true
@@ -170,7 +183,7 @@ func specialCommandHandler(userPrompt string) bool {
 			pterm.Error.Println(err)
 			return true
 		}
-		promptValue = promptHistory[lineNumber]
+		promptValue = promptHistory[historyItem]
 		// print loaded prompt
 		pterm.Info.Println("Loaded prompt from history: ", promptValue)
 		// press enter to
@@ -349,7 +362,9 @@ func main() {
 
 			lastPrompt = userPromptValue
 			laizyFullResponse = ""
-			promptHistory = append(promptHistory, userPromptValue)
+			if userPromptValue != "" {
+				promptHistory = append(promptHistory, userPromptValue)
+			}
 			f, err := os.Create(promptHistoryFile)
 			if err != nil {
 				pterm.Error.Println("Error creating file", promptHistoryFile)
