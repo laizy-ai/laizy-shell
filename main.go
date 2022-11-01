@@ -46,22 +46,22 @@ var (
 		"You are a champion!",
 	}
 	helpMenuEntries = []string{
-		"Type exit or quit to exit",
-		"Type clear to clear the screen",
-		"Type help to show this menu",
-		"Type %load (%ld) to load data from a file",
-		"Type %save to save the current output to a file",
-		"Type %exec (%execs) to execute a shell command, add s to save as data",
-		"Type %history to show the command history",
-		"Type %inspect to view laizy's short-term memory",
-		"Type %forget to clear laizy's short-term memory",
-		"Type %hl <#> to load a command from the history",
-		"Type %multi to toggle multiline mode",
-		"Type %chain to toggle chaining (prompt-output-prompt) mode",
-		"Type %fetch to fetch data from a url",
-		"Type %tips to show a random tip",
-		"Type %cd to change the current working directory",
-		"Type %pwd to show the current working directory",
+		"exit or quit to exit",
+		"clear to clear the screen",
+		"help to show this menu",
+		"%load (%ld) to load data from a file",
+		"%save to save the current output to a file",
+		"%exec (%execs) to execute a shell command, add s to save as data",
+		"%history to show the command history",
+		"%inspect to view laizy's short-term memory",
+		"%forget to clear laizy's short-term memory",
+		"%hl <#> to load a command from the history",
+		"%multi to toggle multiline mode",
+		"%chain to toggle chaining (prompt-output-prompt) mode",
+		"%fetch to fetch data from a url",
+		"%tips to show a random tip",
+		"%cd to change the current working directory",
+		"%pwd to show the current working directory",
 	}
 )
 
@@ -441,7 +441,7 @@ func sendLaizyRequest(userPrompt string, iterations int) string {
 	if err != nil {
 		pterm.Error.Println(err)
 	}
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-", "application/json")
 	req.Header.Set("X-API-KEY", laizyAPIKey)
 	req.Header.Set("User-Agent", "laizy-cli")
 	res, err := http.DefaultClient.Do(req)
